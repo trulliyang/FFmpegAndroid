@@ -5,10 +5,10 @@
 
     <SurfaceView
         android:id="@+id/surface_filter"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,7 +20,16 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:textOff="@string/sound_close"
-        android:textOn="@string/sound_open"/>
+        android:textOff="@string/sound_off"
+        android:textOn="@string/sound_on"/>
+
+    <Button
+        android:id="@+id/btn_select_file"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/btn_sound"
+        android:layout_marginBottom="10dp"
+        android:text="@string/select_file" />
 
 </RelativeLayout>

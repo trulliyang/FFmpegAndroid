@@ -6,26 +6,31 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.PowerManager;
 import android.os.Process;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+
 import com.frank.living.R;
 import com.frank.living.constant.Constants;
 import com.frank.living.listener.OnDoubleClickListener;
 import com.frank.living.listener.IjkPlayerListener;
 import com.frank.living.widget.IjkVideoView;
+
 import java.util.HashMap;
 import java.util.TreeMap;
+
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 /**
- * 多路投屏直播
+ * multi screen living
  * Created by xufulong on 2019/01/04
  */
-public class MultiScreenActivity extends AppCompatActivity{
+public class MultiScreenActivity extends AppCompatActivity {
 
     private static final String TAG = MultiScreenActivity.class.getSimpleName();
 
@@ -41,11 +46,11 @@ public class MultiScreenActivity extends AppCompatActivity{
     private CustomReceiver customReceiver;
     private String ipAddress;
 
-    //四分屏模式还是全屏模式
+    //is multi-screen mode or full-screen mode
     private boolean isMultiScreen;
-    //保存客户端ip与通道数对应关系
+    //relationship of between client id and channel number
     private HashMap<String, Integer> clientMap = new HashMap<>();
-    //记录每个通道的投屏状态
+    //record each channel state
     private TreeMap<Integer, Boolean> channelMap = new TreeMap<>();
 
     private String url = "";
@@ -65,17 +70,17 @@ public class MultiScreenActivity extends AppCompatActivity{
 
     }
 
-    private void initView(){
-        mVideoView1 = (IjkVideoView) findViewById(R.id.video_view1);
-        mVideoView2 = (IjkVideoView) findViewById(R.id.video_view2);
-        mVideoView3 = (IjkVideoView) findViewById(R.id.video_view3);
-        mVideoView4 = (IjkVideoView) findViewById(R.id.video_view4);
+    private void initView() {
+        mVideoView1 = findViewById(R.id.video_view1);
+        mVideoView2 = findViewById(R.id.video_view2);
+        mVideoView3 = findViewById(R.id.video_view3);
+        mVideoView4 = findViewById(R.id.video_view4);
 
         divider1 = findViewById(R.id.divider1);
         divider2 = findViewById(R.id.divider2);
     }
 
-    private void initListener(){
+    private void initListener() {
         mVideoView1.setOnTouchListener(new OnDoubleClickListener(new OnDoubleClickListener.OnDoubleClick() {
             @Override
             public void onDouble() {
@@ -102,14 +107,14 @@ public class MultiScreenActivity extends AppCompatActivity{
         }));
     }
 
-    private void setupView(){
-        //第一路投屏默认全屏
+    private void setupView() {
+        //default full screen
         enterFullScreen(1);
         mVideoView1.setVideoPath(url);
         mVideoView1.setIjkPlayerListener(new IjkPlayerListener() {
             @Override
             public void onIjkPlayer(IjkMediaPlayer ijkMediaPlayer) {
-                //设置播放器option
+                //setting ijkPlayer option
                 setOptions(ijkMediaPlayer);
             }
         });
@@ -124,10 +129,10 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 外部传进来的数据:URL
+     * parse params
      */
-    private void parseIntent(){
-        for (int i=1; i<=4; i++){
+    private void parseIntent() {
+        for (int i = 1; i <= 4; i++) {
             channelMap.put(i, false);
         }
         clientMap.put(ipAddress, 1);
@@ -135,57 +140,56 @@ public class MultiScreenActivity extends AppCompatActivity{
 
         Intent intent = getIntent();
         String url = intent.getStringExtra("url");
-        if(!TextUtils.isEmpty(url)){
+        if (!TextUtils.isEmpty(url)) {
             this.url = url;
         }
         String ip = intent.getStringExtra("ip");
-        if (!TextUtils.isEmpty(ip)){
+        if (!TextUtils.isEmpty(ip)) {
             ipAddress = ip;
         }
     }
 
-    //唤醒屏幕
-    private void wakeUp(){
+    //wake up the screen
+    private void wakeUp() {
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         if (powerManager == null)
             return;
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-                |PowerManager.ACQUIRE_CAUSES_WAKEUP, TAG);
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP, TAG);
         wakeLock.acquire(1000);
         wakeLock.release();
     }
 
     /**
-     * 配置播放器参数项
-     *
+     * config the options of ijkPlayer
      */
-    private void setOptions(IjkMediaPlayer ijkPlayer){
+    private void setOptions(IjkMediaPlayer ijkPlayer) {
         if (ijkPlayer == null)
             return;
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "fast", 1);//不额外优化
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 200);
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "fast", 1);//no extra optimize
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 200);//size of probe data
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flush_packets", 1);
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);//是否开启缓冲
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);//enable cache or not
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 1);
-        //0:代表关闭，1:代表开启
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 0);//开启硬解
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 0);//自动旋屏
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 0);//处理分辨率变化
+        //0:disable 1:enable
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 0);//enable hardware decode or not
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 0);//auto rotate
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 0);
 
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-buffer-size", 0);//最大缓存数
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "min-frames", 2);//默认最小帧数2
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max_cached_duration", 30);//最大缓存时长
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "infbuf", 1);//是否限制输入缓存数
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-buffer-size", 0);//max buffer size
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "min-frames", 2);//minimum frame size
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max_cached_duration", 30);//maximum cached duration
+        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "infbuf", 1);
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "nobuffer");
-        //设置播放前的最大探测时间,分析码流时长:默认1024*1000
+        //max analyzed duration
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzedmaxduration", 100);
-        //ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rtsp_transport", "tcp");//tcp传输数据
+        //ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rtsp_transport", "tcp");//using tcp or udp
     }
 
     /**
-     * 注册广播
+     * register broadcast
      */
-    private void registerBroadcast(){
+    private void registerBroadcast() {
         customReceiver = new CustomReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Constants.ACTION_CLIENT_REMOVE);
@@ -194,54 +198,53 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 注销广播
+     * unregister broadcast
      */
-    private void unregisterBroadcast(){
-        if(customReceiver != null){
+    private void unregisterBroadcast() {
+        if (customReceiver != null) {
             unregisterReceiver(customReceiver);
             customReceiver = null;
         }
     }
 
     /**
-     * 自定义广播接收器
+     * custom broadcast receiver
      */
     private class CustomReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if(action == null)
+            if (action == null)
                 return;
             Log.e(TAG, "onReceive=" + action);
-            switch (action){
-                case Constants.ACTION_CLIENT_REMOVE: //移除投屏
+            switch (action) {
+                case Constants.ACTION_CLIENT_REMOVE://remove client
                     int num = intent.getIntExtra("clientNum", 0);
-                    if (num == 0){
+                    if (num == 0) {
                         Process.killProcess(Process.myPid());
-                    }else if (num > 0){
+                    } else if (num > 0) {
                         String ipAddress = intent.getStringExtra("ipAddress");
                         int target = clientMap.get(ipAddress);
                         removeClient(target);
                         clientMap.remove(ipAddress);
                         channelMap.put(target, false);
-                        //多屏变为单屏时，自动切换为全屏
-                        if (num == 1){
+                        if (num == 1) {
                             int castingChannel = getCastingChannel();
                             enterFullScreen(castingChannel);
                         }
                     }
                     break;
-                case Constants.ACTION_CLIENT_ADD://增加投屏
+                case Constants.ACTION_CLIENT_ADD://add client
                     int clientNum = intent.getIntExtra("clientNum", 0);
                     String otherUrl = intent.getStringExtra("url");
                     String ipAddress = intent.getStringExtra("ip");
-                    //选择空闲通道
+                    //select the idle channel
                     int channel = selectIdleChannel(clientNum);
                     clientMap.put(ipAddress, channel);
                     channelMap.put(channel, true);
                     addClient(channel, otherUrl);
-                    //单屏变为两路投屏时，自动切换为多屏模式
-                    if (clientNum == 2){
+                    //switch multi-screen mode
+                    if (clientNum == 2) {
                         exitFullScreen();
                     }
                     break;
@@ -252,13 +255,14 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 选择空闲通道
+     * select the first idle channel
+     *
      * @param clientNum clientNum
      * @return idleChannel
      */
-    private int selectIdleChannel(int clientNum){
-        for (int channel = 1; channel < clientNum; channel++){
-            if (!channelMap.get(channel)){
+    private int selectIdleChannel(int clientNum) {
+        for (int channel = 1; channel < clientNum; channel++) {
+            if (!channelMap.get(channel)) {
                 return channel;
             }
         }
@@ -266,12 +270,13 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 获取当前投屏通道
+     * get current casting channel
+     *
      * @return idleChannel
      */
-    private int getCastingChannel(){
-        for (int channel = 1; channel <= 4; channel++){
-            if (channelMap.get(channel)){
+    private int getCastingChannel() {
+        for (int channel = 1; channel <= 4; channel++) {
+            if (channelMap.get(channel)) {
                 return channel;
             }
         }
@@ -279,12 +284,13 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 添加客户端
-     * @param target target
+     * add client to casting
+     *
+     * @param target    target
      * @param clientUrl clientUrl
      */
-    private void addClient(int target, String clientUrl){
-        switch (target){
+    private void addClient(int target, String clientUrl) {
+        switch (target) {
             case 1:
                 mVideoView1.setVisibility(View.VISIBLE);
                 mVideoView1.setVideoPath(clientUrl);
@@ -311,11 +317,12 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 移除客户端
+     * remove client
+     *
      * @param target target
      */
-    private void removeClient(int target){
-        switch (target){
+    private void removeClient(int target) {
+        switch (target) {
             case 1:
                 mVideoView1.stopPlayback();
                 mVideoView1.setVisibility(View.GONE);
@@ -338,28 +345,29 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 隐藏分割线
+     * hide divider in multi-screen mode
      */
-    private void hideDivider(){
+    private void hideDivider() {
         divider1.setVisibility(View.GONE);
         divider2.setVisibility(View.GONE);
     }
 
     /**
-     * 显示分割线
+     * show divider in multi-screen mode
      */
-    private void showDivider(){
+    private void showDivider() {
         divider1.setVisibility(View.VISIBLE);
         divider2.setVisibility(View.VISIBLE);
     }
 
     /**
-     * 进入全屏模式
+     * enter full-screen mode
+     *
      * @param channel channel
      */
-    private void enterFullScreen(int channel){
+    private void enterFullScreen(int channel) {
         hideDivider();
-        switch (channel){
+        switch (channel) {
             case 1:
                 mVideoView1.setRenderViewVisible();
                 mVideoView2.setRenderViewGone();
@@ -410,9 +418,9 @@ public class MultiScreenActivity extends AppCompatActivity{
     }
 
     /**
-     * 退出全屏模式
+     * exit full-screen mode
      */
-    private void exitFullScreen(){
+    private void exitFullScreen() {
         mVideoView1.setRenderViewVisible();
         mVideoView2.setRenderViewVisible();
         mVideoView3.setRenderViewVisible();
@@ -425,18 +433,19 @@ public class MultiScreenActivity extends AppCompatActivity{
         mVideoView4.setVisibility(View.VISIBLE);
     }
 
-/**
- * 切换分屏模式
- * @param channel channel
- */
-private void changeScreenMode(int channel){
-    isMultiScreen = !isMultiScreen;
-    if (isMultiScreen){
-        enterFullScreen(channel);
-    }else {
-        exitFullScreen();
+    /**
+     * switch screen mode
+     *
+     * @param channel channel
+     */
+    private void changeScreenMode(int channel) {
+        isMultiScreen = !isMultiScreen;
+        if (isMultiScreen) {
+            enterFullScreen(channel);
+        } else {
+            exitFullScreen();
+        }
     }
-}
 
     @Override
     protected void onDestroy() {
